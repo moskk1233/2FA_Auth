@@ -51,7 +51,30 @@ app.post('/api/verify', async (req, res) => {
 
     } catch(err) {
         console.log(err)
-        res.status(500).json({ message: "Error verifying" })
+        res.status(500).json({ message: "Error finding user" })
+    }
+})
+
+app.post('/api/validate', async (req, res) => {
+    const { token, userId } = req.body;
+
+    
+    try {
+        const path = `/user/${userId}`
+        const user = await db.getData(path)
+        const { base32:secret } = user.secret
+
+        const tokenValidate = speakeasy.totp.verify({ secret, encoding: 'base32', token: token, window: 1 });
+    
+        if (tokenValidate) {
+            res.json({ validated: true })
+        } else {
+            res.json({ validated: false })
+        }
+
+    } catch(err) {
+        console.log(err)
+        res.status(500).json({ message: "Error finding user" })
     }
 })
 
